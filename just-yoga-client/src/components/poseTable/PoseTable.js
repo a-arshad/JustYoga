@@ -1,10 +1,13 @@
 import { Typography } from "@material-ui/core";
 import NextPose from "../nextPose/NextPose";
-import { ReactComponent as MainPose } from "./pose1.svg";
 import { useStyles } from "./PoseTable.styles";
 
 const PoseTable = (poses) => {
   const styles = useStyles();
+
+  console.log(poses);
+  
+  let mainId = poses.poses[0].id
 
   return (
     <div className={styles.root}>
@@ -15,19 +18,15 @@ const PoseTable = (poses) => {
         </Typography>
         <div className={styles.posesContainer}>
           <div className={styles.mainPoseContainer}>
-            <MainPose style={{ width: "100%", height: "auto" }} />
+            <img src={poses.poses[0].path} style={{ width: "100%", height: "auto" }} />
           </div>
           <Typography style={{ fontWeight: 700, fontSize: "1em" }}>
             Up Next:
           </Typography>
           <div className={styles.nextPoses}>
-            {poses &&
-              Object.entries(poses).map(([key, pose]) => {
-                <NextPose path={pose} />;
+            {Object.entries(poses.poses).map(([key, pose]) => {
+                return (pose.id !== mainId ? <NextPose path={pose.path} /> : null);
               })}
-            <NextPose />
-            <NextPose />
-            <NextPose />
           </div>
         </div>
         <div className={styles.container}></div>

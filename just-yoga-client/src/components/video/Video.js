@@ -163,8 +163,8 @@ class Video extends React.Component {
         this.setState({ countdown: this.state.countdown - 1 });
         if (this.state.countdown <= 0) {
           // next pose
-          this.props.poses.shift();
-          this.props.setPoses(this.props.poses);
+          
+          this.props.posesCallback();
 
           clearInterval(timer);
           const dataURL = this.capture();
