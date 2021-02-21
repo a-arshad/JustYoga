@@ -139,6 +139,10 @@ class Video extends React.Component {
       let timer = setInterval(() => {
         this.setState({ countdown: this.state.countdown - 1 });
         if (this.state.countdown <= 0) {
+          // next pose
+          this.props.poses.shift();
+          this.props.setPoses(this.props.poses);
+
           // capture image
           this.setState({
             imageNumber: this.state.imageNumber + 1,

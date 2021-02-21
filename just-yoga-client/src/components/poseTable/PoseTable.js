@@ -3,7 +3,7 @@ import NextPose from "../nextPose/NextPose";
 import { ReactComponent as MainPose } from "./pose1.svg";
 import { useStyles } from "./PoseTable.styles";
 
-const PoseTable = () => {
+const PoseTable = (poses) => {
   const styles = useStyles();
 
   return (
@@ -21,9 +21,10 @@ const PoseTable = () => {
             Up Next:
           </Typography>
           <div className={styles.nextPoses}>
-            <NextPose />
-            <NextPose />
-            <NextPose />
+            {poses &&
+              Object.entries(poses).map(([key, pose]) => {
+                <NextPose pose={pose} />;
+              })}
           </div>
         </div>
         <div className={styles.container}></div>
