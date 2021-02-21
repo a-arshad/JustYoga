@@ -25,7 +25,7 @@ class Video extends React.Component {
     const socket = io(process.env.REACT_APP_SIGNALING_SERVER);
     const component = this;
     this.setState({ socket });
-    const { roomId } = this.props.match.params;
+    const { roomId } = this.props.roomId;
     this.getUserMedia().then(() => {
       console.log("join");
       socket.emit("join", { roomId: roomId });
@@ -48,7 +48,7 @@ class Video extends React.Component {
       console.log("roundStarted");
       this.setState({ roundStart: true });
       this.startTimer();
-    })
+    });
     socket.on("disconnected", () => {
       component.setState({ initiator: true });
     });
@@ -126,20 +126,24 @@ class Video extends React.Component {
 
   startRound = () => {
     if (!this.state.waiting && !this.state.connecting && this.state.socket) {
-      const { roomId } = this.props.match.params;
+      const { roomId } = this.props.roomId;
       this.state.socket.emit("startRound");
     }
-  }
-  
-  startTimer = () => {    
+  };
+
+  startTimer = () => {
+    console.log("plstimer");
     this.setState({ countdown: 10, imageNumber: 0 });
 
     if (this.state.countdown > 0) {
       let timer = setInterval(() => {
-        this.setState({ countdown: this.state.countdown-1 });
-        if (this.state.countdown <= 0) { 
+        this.setState({ countdown: this.state.countdown - 1 });
+        if (this.state.countdown <= 0) {
           // capture image
-          this.setState({ imageNumber: this.state.imageNumber+1, countdown: 10 });
+          this.setState({
+            imageNumber: this.state.imageNumber + 1,
+            countdown: 10,
+          });
           console.log(this.state.imageNumber);
           if (this.state.imageNumber > 4) {
             // round over
@@ -149,7 +153,7 @@ class Video extends React.Component {
         }
       }, 1000);
     }
-  }
+  };
 
   capture = () => {
     const canvas = document.createElement("canvas");
@@ -157,29 +161,30 @@ class Video extends React.Component {
     canvas.width = this.localVideo.videoWidth;
     canvas.height = this.localVideo.videoHeight;
     // draw the video at that frame
-    canvas.getContext('2d')
+    canvas
+      .getContext("2d")
       .drawImage(this.localVideo, 0, 0, canvas.width, canvas.height);
     // convert it to a usable data URL
     const dataURL = canvas.toDataURL();
 
     // TODO: send this to backend
     return dataURL;
-  }
+  };
 
   render() {
     return (
       <div>
-        <div style={{display: "flex", flexDirection: "column"}}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {this.state.countdown}
-          {!this.state.roundStart && this.state.initiator && 
+          {!this.state.roundStart && this.state.initiator && (
             <button onClick={this.startRound}>Start Round</button>
-          }
+          )}
           <video
-              autoPlay
-              id="localVideo"
-              muted
-              ref={(video) => (this.localVideo = video)}
-            />
+            autoPlay
+            id="localVideo"
+            muted
+            ref={(video) => (this.localVideo = video)}
+          />
           <video
             autoPlay
             className={`${
@@ -203,7 +208,7 @@ class Video extends React.Component {
         {this.state.full && (
           <div className="status">
             <p>Room is full</p>
-        </div>
+          </div>
         )}
       </div>
     );
