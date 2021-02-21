@@ -1,18 +1,28 @@
 var app = require("express")();
 var server = require("http").Server(app);
-var io = require("socket.io")(server);
+var io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
-server.listen(process.env.PORT || 80);
+server.listen(8000);
+
+console.log(`listening on ${process.env.PORT}`);
 
 io.on("connection", function (socket) {
   socket.on("join", function (data) {
+    console.log("server: join");
     socket.join(data.roomId);
     socket.room = data.roomId;
-    const sockets = io.of("/").in().adapter.rooms[data.roomId];
-    if (sockets.length === 1) {
+    const sockets = io.of("/").in().adapter.rooms.get(data.roomId);
+
+    console.log(sockets);
+
+    if (sockets.size === 1) {
       socket.emit("init");
     } else {
-      if (sockets.length === 2) {
+      if (sockets.size === 2) {
         io.to(data.roomId).emit("ready");
       } else {
         socket.room = null;
