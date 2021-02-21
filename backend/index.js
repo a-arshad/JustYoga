@@ -1,33 +1,33 @@
-const http = require('http');
-const server = require('websocket').server;
+var app = require("express")();
+var server = require("http").Server(app);
+var io = require("socket.io")(server);
 
-const PORT = 8000;
+server.listen(process.env.PORT || 80);
 
-const httpServer = http.createServer(() => { });
-httpServer.listen(PORT, () => {
-  console.log(`Server listening at port ${PORT}`);
-});
-
-const wsServer = new server({
-  httpServer,
-});
-
-const peersByCode = {};
-
-wsServer.on('request', request => {
-  const connection = request.accept();
-  const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-  connection.on('message', message => {
-    const { code } = JSON.parse(message.utf8Data);
-    if (!peersByCode[code]) {
-      peersByCode[code] = [{ connection, id }];
-    } else if (!peersByCode[code].find(peer => peer.id === id)) {
-      peersByCode[code].push({ connection, id });
+io.on("connection", function (socket) {
+  socket.on("join", function (data) {
+    socket.join(data.roomId);
+    socket.room = data.roomId;
+    const sockets = io.of("/").in().adapter.rooms[data.roomId];
+    if (sockets.length === 1) {
+      socket.emit("init");
+    } else {
+      if (sockets.length === 2) {
+        io.to(data.roomId).emit("ready");
+      } else {
+        socket.room = null;
+        socket.leave(data.roomId);
+        socket.emit("full");
+      }
     }
-
-    peersByCode[code]
-      .filter(peer => peer.id !== id)
-      .forEach(peer => peer.connection.send(message.utf8Data));
+  });
+  socket.on("signal", (data) => {
+    io.to(data.room).emit("desc", data.desc);
+  });
+  socket.on("disconnect", () => {
+    const roomId = Object.keys(socket.adapter.rooms)[0];
+    if (socket.room) {
+      io.to(socket.room).emit("disconnected");
+    }
   });
 });
