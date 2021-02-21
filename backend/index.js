@@ -11,7 +11,6 @@ server.listen(8000);
 console.log(`listening on localhost:8000`);
 
 io.on("connection", function (socket) {
-
   socket.on("join", function (data) {
     socket.join(data.roomId);
     socket.room = data.roomId;
@@ -46,8 +45,9 @@ io.on("connection", function (socket) {
   });
 
   socket.on("startRound", () => {
+    console.log("pls");
     io.to(socket.room).emit("roundStarted");
-  })
+  });
 
   socket.on("disconnect", () => {
     const roomId = Object.keys(socket.adapter.rooms)[0];

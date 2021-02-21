@@ -1,6 +1,8 @@
 import React from "react";
 import VideoCall from "../../helpers/simple-peer";
 import io from "socket.io-client";
+import { Typography, Button } from "@material-ui/core";
+import styles from "./Video.module.css";
 
 class Video extends React.Component {
   constructor() {
@@ -28,13 +30,14 @@ class Video extends React.Component {
   videoCall = new VideoCall();
 
   componentDidMount() {
-    
-    this.setState({ localName: new URLSearchParams(this.props.location.search).get("name")})
+    this.setState({
+      localName: new URLSearchParams(this.props.location).get("name"),
+    });
 
     const socket = io(process.env.REACT_APP_SIGNALING_SERVER);
     const component = this;
     this.setState({ socket });
-    const { roomId } = this.props.match.params;
+    const { roomId } = this.props.roomId;
     this.getUserMedia().then(() => {
       console.log("join");
       socket.emit("join", { roomId: roomId });
@@ -147,51 +150,54 @@ class Video extends React.Component {
 
   startRound = () => {
     if (!this.state.waiting && !this.state.connecting && this.state.socket) {
-      const { roomId } = this.props.match.params;
+      const { roomId } = this.props.roomId;
       this.state.socket.emit("startRound");
     }
-  }
-  
-  startTimer = () => {    
-    this.setState({ countdown: 10});
+  };
+
+  startTimer = () => {
+    this.setState({ countdown: 10 });
 
     if (this.state.countdown > 0) {
       let timer = setInterval(async () => {
-        this.setState({ countdown: this.state.countdown-1 });
-        if (this.state.countdown <= 0) { 
+        this.setState({ countdown: this.state.countdown - 1 });
+        if (this.state.countdown <= 0) {
+          // next pose
+          this.props.poses.shift();
+          this.props.setPoses(this.props.poses);
+
           clearInterval(timer);
           const dataURL = this.capture();
           let score = await this.scoreImage(dataURL);
           this.setState({ localScore: score });
           this.state.socket.emit("score", this.state.localScore);
-          this.receivedScore()
+          this.receivedScore();
         }
       }, 1000);
     }
-  }
+  };
 
   scoreImage = async (dataUrl) => {
     //fetch here
     return Math.random();
-  }
+  };
 
   receivedScore = () => {
     // a received score will be greater than 0, if it is less than we wait for api to finish
     if (this.state.localScore >= 0 && this.state.remoteScore >= 0) {
-
       if (this.state.localScore > this.state.remoteScore) {
-        this.setState({ localWins: this.state.localWins+1 });
+        this.setState({ localWins: this.state.localWins + 1 });
       } else {
-        this.setState({ remoteWins: this.state.remoteWins+1 });
+        this.setState({ remoteWins: this.state.remoteWins + 1 });
       }
-      
+
       this.setState({
         localScore: -1,
         remoteScore: -1,
-        imageNumber: this.state.imageNumber+1,
-        countdown: 10 
+        imageNumber: this.state.imageNumber + 1,
+        countdown: 10,
       });
-      
+
       if (this.state.imageNumber >= 4) {
         // round over
         this.setState({ roundStart: false, imageNumber: 0 });
@@ -199,7 +205,7 @@ class Video extends React.Component {
         this.startTimer();
       }
     }
-  }
+  };
 
   capture = () => {
     const canvas = document.createElement("canvas");
@@ -207,58 +213,108 @@ class Video extends React.Component {
     canvas.width = this.localVideo.videoWidth;
     canvas.height = this.localVideo.videoHeight;
     // draw the video at that frame
-    canvas.getContext('2d')
+    canvas
+      .getContext("2d")
       .drawImage(this.localVideo, 0, 0, canvas.width, canvas.height);
     // convert it to a usable data URL
     const dataURL = canvas.toDataURL();
 
     // TODO: send this to backend
     return dataURL;
-  }
+  };
+
+  showState = () => {
+    if (this.state.connecting) {
+      return (
+        <div className={styles.status}>
+          <p>Establishing connection...</p>
+        </div>
+      );
+    } else if (this.state.waiting) {
+      return (
+        <div className={styles.status}>
+          <p>Waiting for someone...</p>
+        </div>
+      );
+    } else if (this.state.full) {
+      return (
+        <div className={styles.status}>
+          <p>Room is full</p>
+        </div>
+      );
+    } else {
+      return <div></div>;
+    }
+  };
 
   render() {
     return (
-      <div>
-        <div style={{display: "flex", flexDirection: "column"}}>
-          {this.state.countdown}
-          <br/>
-          {this.state.localName} score: {this.state.localWins}
-          <br/>
-          {this.state.remoteName} score: {this.state.remoteWins}
-          {!this.state.roundStart && this.state.initiator && 
-            <button onClick={this.startRound}>Start Round</button>
-          }
+      <div style={{ width: "92vh", alignItems: "center", display: "flex" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+          }}
+        >
+          <div className={styles.counterContainer}>
+            <Typography
+              style={{ fontWeight: 700, fontSize: "6.7em", color: "#A49EA6" }}
+            >
+              {this.state.countdown}
+            </Typography>
+
+            {!this.state.roundStart && this.state.initiator && (
+              <Button
+                color="primary"
+                variant="contained"
+                disabled={this.state.connecting || this.state.waiting}
+                onClick={this.startRound}
+              >
+                Start Round
+              </Button>
+            )}
+          </div>
+          <div className={styles.relative}>
+            <div className={styles.userInfo}>
+              <div>
+                <Typography>
+                  <b>{this.state.localName}</b>
+                </Typography>
+              </div>
+              <div>score: {this.state.localWins}</div>
+            </div>
+            {!this.state.connecting && !this.state.waiting ? (
+              <div className={styles.relative}>
+                <div className={styles.guestInfo}>
+                  <div>
+                    <Typography>
+                      <b>{this.state.remoteName}</b>
+                    </Typography>
+                  </div>
+                  <div>score: {this.state.remoteWins}</div>
+                </div>
+              </div>
+            ) : null}
+          </div>
           <video
-              autoPlay
-              id="localVideo"
-              muted
-              ref={(video) => (this.localVideo = video)}
-            />
+            autoPlay
+            id="localVideo"
+            muted
+            ref={(video) => (this.localVideo = video)}
+            style={{ width: "100%", maxHeight: "100%" }}
+          />
           <video
             autoPlay
             className={`${
               this.state.connecting || this.state.waiting ? "hide" : ""
-            }`}
+            } ${styles.guestVideo}`}
             id="remoteVideo"
             ref={(video) => (this.remoteVideo = video)}
+            style={{ width: "100%", maxHeight: "100%" }}
           />
+          <this.showState></this.showState>
         </div>
-
-        {this.state.connecting && (
-          <div className="status">
-            <p>Establishing connection...</p>
-          </div>
-        )}
-        {this.state.waiting && (
-          <div className="status">
-            <p>Waiting for someone...</p>
-          </div>
-        )}
-        {this.state.full && (
-          <div className="status">
-            <p>Room is full</p>
-        </div>
-        )}
       </div>
     );
   }
