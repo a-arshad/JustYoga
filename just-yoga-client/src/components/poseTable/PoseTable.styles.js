@@ -2,10 +2,6 @@ import { makeStyles } from "@material-ui/core";
 
 export const useStyles = makeStyles({
   root: {
-    // height: "98vh",
-    // display: "flex",
-    // flexDirection: "column",
-    // padding: "2%",
     padding: "2%",
     flex: "1",
   },

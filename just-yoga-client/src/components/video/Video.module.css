@@ -1,7 +1,7 @@
 .counterContainer {
   position: absolute;
   top: 42vh;
-  right: 23%;
+  right: 21.5%;
 }
 
 .status {
@@ -17,13 +17,13 @@
 .userInfo {
   position: absolute;
   top: 6%;
-  left: 53%;
+  left: calc(100vw - 770px);
 }
 
 .guestInfo {
   position: absolute;
   top: 55%;
-  left: 53%;
+  left: calc(100vw - 770px);
 }
 
 .button {
