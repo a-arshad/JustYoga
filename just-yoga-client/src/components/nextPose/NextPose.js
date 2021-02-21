@@ -7,7 +7,7 @@ const NextPose = () => {
   return (
     <div className={styles.root}>
       <Pose style={{ height: "auto", width: "100%" }} />
-      <Typography>Pose Name</Typography>
+      <p className={styles.name}>Pose Name</p>
     </div>
   );
 };
