@@ -8,15 +8,16 @@ var io = require("socket.io")(server, {
 
 server.listen(8000);
 
-console.log(`listening on ${process.env.PORT}`);
+console.log(`listening on localhost:8000`);
 
 io.on("connection", function (socket) {
+
   socket.on("join", function (data) {
-    console.log("server: join");
     socket.join(data.roomId);
     socket.room = data.roomId;
     const sockets = io.of("/").in().adapter.rooms.get(data.roomId);
 
+    console.log("room " + data.roomId + " :");
     console.log(sockets);
 
     if (sockets.size === 1) {
@@ -31,9 +32,15 @@ io.on("connection", function (socket) {
       }
     }
   });
+
   socket.on("signal", (data) => {
     io.to(data.room).emit("desc", data.desc);
   });
+
+  socket.on("startRound", () => {
+    io.to(socket.room).emit("roundStarted");
+  })
+
   socket.on("disconnect", () => {
     const roomId = Object.keys(socket.adapter.rooms)[0];
     if (socket.room) {

@@ -14,6 +14,9 @@ class Video extends React.Component {
       connecting: false,
       waiting: true,
       camState: true,
+      imageNumber: 0,
+      countdown: 10,
+      roundStart: false,
     };
   }
   videoCall = new VideoCall();
@@ -41,6 +44,11 @@ class Video extends React.Component {
       if (data.type === "answer" && !component.state.initiator) return;
       component.call(data);
     });
+    socket.on("roundStarted", () => {
+      console.log("roundStarted");
+      this.setState({ roundStart: true });
+      this.startTimer();
+    })
     socket.on("disconnected", () => {
       component.setState({ initiator: true });
     });
@@ -86,7 +94,6 @@ class Video extends React.Component {
   }
 
   enter = (roomId) => {
-    console.log(roomId);
     this.setState({ connecting: true });
     const peer = this.videoCall.init(
       this.state.localStream,
@@ -101,11 +108,13 @@ class Video extends React.Component {
       };
       this.state.socket.emit("signal", signal);
     });
+
     peer.on("stream", (stream) => {
       console.log("stream");
       this.remoteVideo.srcObject = stream;
       this.setState({ connecting: false, waiting: false });
     });
+
     peer.on("error", function (err) {
       console.log(err);
     });
@@ -115,12 +124,33 @@ class Video extends React.Component {
     this.videoCall.connect(otherId);
   };
 
-  renderFull = () => {
-    if (this.state.full) {
-      return "The room is full";
+  startRound = () => {
+    if (!this.state.waiting && !this.state.connecting && this.state.socket) {
+      const { roomId } = this.props.match.params;
+      this.state.socket.emit("startRound");
     }
-  };
+  }
   
+  startTimer = () => {    
+    this.setState({ countdown: 10, imageNumber: 0 });
+
+    if (this.state.countdown > 0) {
+      let timer = setInterval(() => {
+        this.setState({ countdown: this.state.countdown-1 });
+        if (this.state.countdown <= 0) { 
+          // capture image
+          this.setState({ imageNumber: this.state.imageNumber+1, countdown: 10 });
+          console.log(this.state.imageNumber);
+          if (this.state.imageNumber > 4) {
+            // round over
+            clearInterval(timer);
+            this.setState({ roundStart: false });
+          }
+        }
+      }, 1000);
+    }
+  }
+
   capture = () => {
     const canvas = document.createElement("canvas");
 
@@ -133,13 +163,17 @@ class Video extends React.Component {
     const dataURL = canvas.toDataURL();
 
     // TODO: send this to backend
-    console.log(dataURL);
+    return dataURL;
   }
 
   render() {
     return (
       <div>
         <div style={{display: "flex", flexDirection: "column"}}>
+          {this.state.countdown}
+          {!this.state.roundStart && this.state.initiator && 
+            <button onClick={this.startRound}>Start Round</button>
+          }
           <video
               autoPlay
               id="localVideo"
@@ -166,7 +200,11 @@ class Video extends React.Component {
             <p>Waiting for someone...</p>
           </div>
         )}
-        {this.renderFull()}
+        {this.state.full && (
+          <div className="status">
+            <p>Room is full</p>
+        </div>
+        )}
       </div>
     );
   }
