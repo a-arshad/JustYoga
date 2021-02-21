@@ -1,30 +1,35 @@
-import { Typography } from '@material-ui/core';
-import NextPose from '../nextPose/NextPose';
-import { ReactComponent as MainPose } from './pose1.svg';
-import { useStyles } from './PoseTable.styles'
-
+import { Typography } from "@material-ui/core";
+import NextPose from "../nextPose/NextPose";
+import { ReactComponent as MainPose } from "./pose1.svg";
+import { useStyles } from "./PoseTable.styles";
 
 const PoseTable = () => {
-    const styles = useStyles();
+  const styles = useStyles();
 
-    return(
-        <div className={styles.root}>
-            <Typography className={styles.title}>
-                Just Yoga!
-            </Typography>
-            <div className={styles.mainPose}>
-                <Typography style={{fontWeight: 700, fontSize: 50}}>
-                    Downwards Dog
-                </Typography>
-                <MainPose />
-            </div>
-            <div className={styles.nextPoses}>
-                <NextPose />
-                <NextPose />
-                <NextPose />
-            </div>
+  return (
+    <div className={styles.root}>
+      <Typography className={styles.title}>Just Yoga!</Typography>
+      <div className={styles.container}>
+        <Typography style={{ fontWeight: 700, fontSize: "2.5em" }}>
+          Downward-Facing Dog
+        </Typography>
+        <div className={styles.posesContainer}>
+          <div className={styles.mainPoseContainer}>
+            <MainPose style={{ width: "100%", height: "auto" }} />
+          </div>
+          <Typography style={{ fontWeight: 700, fontSize: "1em" }}>
+            Up Next:
+          </Typography>
+          <div className={styles.nextPoses}>
+            <NextPose />
+            <NextPose />
+            <NextPose />
+          </div>
         </div>
-    );
-}
+        <div className={styles.container}></div>
+      </div>
+    </div>
+  );
+};
 
 export default PoseTable;

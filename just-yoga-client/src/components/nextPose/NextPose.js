@@ -1,15 +1,15 @@
-import { Typography } from '@material-ui/core';
-import { ReactComponent as Pose } from '../poseTable/pose1.svg';
+import { Typography } from "@material-ui/core";
+import { ReactComponent as Pose } from "../poseTable/pose1.svg";
+import { useStyles } from "./NextPose.styles";
 
 const NextPose = () => {
-    return(
-        <div>
-            <Pose />
-            <Typography>
-                Pose Name
-            </Typography>
-        </div>
-    );
-}
+  const styles = useStyles();
+  return (
+    <div className={styles.root}>
+      <Pose style={{ height: "auto", width: "100%" }} />
+      <Typography>Pose Name</Typography>
+    </div>
+  );
+};
 
 export default NextPose;
