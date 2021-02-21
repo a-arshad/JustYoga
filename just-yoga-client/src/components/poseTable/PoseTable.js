@@ -21,10 +21,13 @@ const PoseTable = (poses) => {
             Up Next:
           </Typography>
           <div className={styles.nextPoses}>
-            {poses &&
+            {/* {poses &&
               Object.entries(poses).map(([key, pose]) => {
                 <NextPose pose={pose} />;
-              })}
+              })} */}
+            <NextPose />
+            <NextPose />
+            <NextPose />
           </div>
         </div>
         <div className={styles.container}></div>

@@ -1,6 +1,8 @@
 import React from "react";
 import VideoCall from "../../helpers/simple-peer";
 import io from "socket.io-client";
+import { Typography } from "@material-ui/core";
+import styles from "./Video.module.css";
 
 class Video extends React.Component {
   constructor() {
@@ -132,7 +134,6 @@ class Video extends React.Component {
   };
 
   startTimer = () => {
-    console.log("plstimer");
     this.setState({ countdown: 10, imageNumber: 0 });
 
     if (this.state.countdown > 0) {
@@ -177,17 +178,26 @@ class Video extends React.Component {
 
   render() {
     return (
-      <div>
+      <div style={{ width: "88vh", alignItems: "center", display: "flex" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {this.state.countdown}
-          {!this.state.roundStart && this.state.initiator && (
-            <button onClick={this.startRound}>Start Round</button>
-          )}
+          <div className={styles.counterContainer}>
+            <Typography
+              style={{ fontWeight: 700, fontSize: "5em", color: "#A49EA6" }}
+            >
+              {this.state.countdown}
+            </Typography>
+
+            {!this.state.roundStart && this.state.initiator && (
+              <button onClick={this.startRound}>Start Round</button>
+            )}
+          </div>
+
           <video
             autoPlay
             id="localVideo"
             muted
             ref={(video) => (this.localVideo = video)}
+            style={{ width: "100%", maxHeight: "100%" }}
           />
           <video
             autoPlay
@@ -196,6 +206,7 @@ class Video extends React.Component {
             }`}
             id="remoteVideo"
             ref={(video) => (this.remoteVideo = video)}
+            style={{ width: "100%", maxHeight: "100%" }}
           />
         </div>
 
