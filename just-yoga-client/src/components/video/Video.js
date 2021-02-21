@@ -8,6 +8,8 @@ class Video extends React.Component {
   constructor() {
     super();
     this.state = {
+      localName: "",
+      remoteName: "",
       localStream: {},
       remoteStreamUrl: "",
       streamUrl: "",
@@ -19,11 +21,19 @@ class Video extends React.Component {
       imageNumber: 0,
       countdown: 10,
       roundStart: false,
+      localScore: -1,
+      remoteScore: -1,
+      localWins: 0,
+      remoteWins: 0,
     };
   }
   videoCall = new VideoCall();
 
   componentDidMount() {
+    this.setState({
+      localName: new URLSearchParams(this.props.location).get("name"),
+    });
+
     const socket = io(process.env.REACT_APP_SIGNALING_SERVER);
     const component = this;
     this.setState({ socket });
@@ -41,10 +51,21 @@ class Video extends React.Component {
       console.log("enter");
       component.enter(roomId);
     });
-    socket.on("desc", (data) => {
-      if (data.type === "offer" && component.state.initiator) return;
-      if (data.type === "answer" && !component.state.initiator) return;
-      component.call(data);
+    socket.on("desc", (signal) => {
+      console.log("signal");
+      console.log(signal);
+      if (signal.type === "offer" && component.state.initiator) return;
+      if (signal.type === "answer" && !component.state.initiator) return;
+      component.call(signal);
+    });
+    socket.on("remoteName", (name) => {
+      console.log("remoteName");
+      this.setState({ remoteName: name });
+    });
+    socket.on("remoteScore", (score) => {
+      console.log("remoteScore");
+      this.setState({ remoteScore: score });
+      this.receivedScore();
     });
     socket.on("roundStarted", () => {
       console.log("roundStarted");
@@ -109,6 +130,7 @@ class Video extends React.Component {
         desc: data,
       };
       this.state.socket.emit("signal", signal);
+      this.state.socket.emit("name", this.state.localName);
     });
 
     peer.on("stream", (stream) => {
@@ -134,29 +156,54 @@ class Video extends React.Component {
   };
 
   startTimer = () => {
-    this.setState({ countdown: 10, imageNumber: 0 });
+    this.setState({ countdown: 10 });
 
     if (this.state.countdown > 0) {
-      let timer = setInterval(() => {
+      let timer = setInterval(async () => {
         this.setState({ countdown: this.state.countdown - 1 });
         if (this.state.countdown <= 0) {
           // next pose
           this.props.poses.shift();
           this.props.setPoses(this.props.poses);
 
-          // capture image
-          this.setState({
-            imageNumber: this.state.imageNumber + 1,
-            countdown: 10,
-          });
-          console.log(this.state.imageNumber);
-          if (this.state.imageNumber > 4) {
-            // round over
-            clearInterval(timer);
-            this.setState({ roundStart: false });
-          }
+          clearInterval(timer);
+          const dataURL = this.capture();
+          let score = await this.scoreImage(dataURL);
+          this.setState({ localScore: score });
+          this.state.socket.emit("score", this.state.localScore);
+          this.receivedScore();
         }
       }, 1000);
+    }
+  };
+
+  scoreImage = async (dataUrl) => {
+    //fetch here
+    return Math.random();
+  };
+
+  receivedScore = () => {
+    // a received score will be greater than 0, if it is less than we wait for api to finish
+    if (this.state.localScore >= 0 && this.state.remoteScore >= 0) {
+      if (this.state.localScore > this.state.remoteScore) {
+        this.setState({ localWins: this.state.localWins + 1 });
+      } else {
+        this.setState({ remoteWins: this.state.remoteWins + 1 });
+      }
+
+      this.setState({
+        localScore: -1,
+        remoteScore: -1,
+        imageNumber: this.state.imageNumber + 1,
+        countdown: 10,
+      });
+
+      if (this.state.imageNumber >= 4) {
+        // round over
+        this.setState({ roundStart: false, imageNumber: 0 });
+      } else {
+        this.startTimer();
+      }
     }
   };
 
@@ -191,7 +238,12 @@ class Video extends React.Component {
               <button onClick={this.startRound}>Start Round</button>
             )}
           </div>
-
+          <div>
+            <br />
+            {this.state.localName} score: {this.state.localWins}
+            <br />
+            {this.state.remoteName} score: {this.state.remoteWins}
+          </div>
           <video
             autoPlay
             id="localVideo"

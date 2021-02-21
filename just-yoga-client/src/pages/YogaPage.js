@@ -17,6 +17,7 @@ export const YogaPage = (props) => {
         setPoses={setPoses}
         poses={poses}
         roomId={props.match.params}
+        location={props.location.search}
       ></Video>
     </div>
   );

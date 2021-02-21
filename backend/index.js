@@ -32,8 +32,16 @@ io.on("connection", function (socket) {
     }
   });
 
-  socket.on("signal", (data) => {
-    io.to(data.room).emit("desc", data.desc);
+  socket.on("signal", (signal) => {
+    io.to(signal.room).emit("desc", signal.desc);
+  });
+
+  socket.on("name", (name) => {
+    socket.broadcast.to(socket.room).emit('remoteName', name);
+  });
+
+  socket.on("score", (score) => {
+    socket.broadcast.to(socket.room).emit('remoteScore', score);
   });
 
   socket.on("startRound", () => {
