@@ -7,6 +7,11 @@ export const theme = createMuiTheme({
   "& .h6": {
     fontFamily: ["Roboto"],
   },
+  palette: {
+    primary: {
+      main: "#491a29",
+    },
+  },
 });
 
 export default theme;

@@ -1,7 +1,7 @@
 import React from "react";
 import VideoCall from "../../helpers/simple-peer";
 import io from "socket.io-client";
-import { Typography } from "@material-ui/core";
+import { Typography, Button } from "@material-ui/core";
 import styles from "./Video.module.css";
 
 class Video extends React.Component {
@@ -250,7 +250,13 @@ class Video extends React.Component {
   render() {
     return (
       <div style={{ width: "92vh", alignItems: "center", display: "flex" }}>
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+          }}
+        >
           <div className={styles.counterContainer}>
             <Typography
               style={{ fontWeight: 700, fontSize: "6.7em", color: "#A49EA6" }}
@@ -259,23 +265,32 @@ class Video extends React.Component {
             </Typography>
 
             {!this.state.roundStart && this.state.initiator && (
-              <button className={styles.button} onClick={this.startRound()}>
+              <Button
+                color="primary"
+                variant="contained"
+                disabled={this.state.connecting || this.state.waiting}
+                onClick={this.startRound}
+              >
                 Start Round
-              </button>
+              </Button>
             )}
           </div>
-          <div>
+          <div className={styles.relative}>
             <div className={styles.userInfo}>
               <div>
-                <b>{this.state.localName}</b>
+                <Typography>
+                  <b>{this.state.localName}</b>
+                </Typography>
               </div>
               <div>score: {this.state.localWins}</div>
             </div>
-            {this.state.roundStart ? (
-              <div>
+            {!this.state.connecting && !this.state.waiting ? (
+              <div className={styles.relative}>
                 <div className={styles.guestInfo}>
                   <div>
-                    <b>{this.state.remoteName}</b>
+                    <Typography>
+                      <b>{this.state.remoteName}</b>
+                    </Typography>
                   </div>
                   <div>score: {this.state.remoteWins}</div>
                 </div>
