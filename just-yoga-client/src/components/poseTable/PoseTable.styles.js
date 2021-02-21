@@ -27,7 +27,7 @@ export const useStyles = makeStyles({
     flexDirection: "column",
   },
   mainPoseContainer: {
-    marginBottom: "8%",
+    margin: "8% 0",
   },
   nextPoses: {
     display: "flex",

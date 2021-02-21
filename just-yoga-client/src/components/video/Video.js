@@ -223,26 +223,64 @@ class Video extends React.Component {
     return dataURL;
   };
 
+  showState = () => {
+    if (this.state.connecting) {
+      return (
+        <div className={styles.status}>
+          <p>Establishing connection...</p>
+        </div>
+      );
+    } else if (this.state.waiting) {
+      return (
+        <div className={styles.status}>
+          <p>Waiting for someone...</p>
+        </div>
+      );
+    } else if (this.state.full) {
+      return (
+        <div className={styles.status}>
+          <p>Room is full</p>
+        </div>
+      );
+    } else {
+      return <div></div>;
+    }
+  };
+
   render() {
     return (
-      <div style={{ width: "88vh", alignItems: "center", display: "flex" }}>
+      <div style={{ width: "92vh", alignItems: "center", display: "flex" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div className={styles.counterContainer}>
             <Typography
-              style={{ fontWeight: 700, fontSize: "5em", color: "#A49EA6" }}
+              style={{ fontWeight: 700, fontSize: "6.7em", color: "#A49EA6" }}
             >
               {this.state.countdown}
             </Typography>
 
             {!this.state.roundStart && this.state.initiator && (
-              <button onClick={this.startRound}>Start Round</button>
+              <button className={styles.button} onClick={this.startRound()}>
+                Start Round
+              </button>
             )}
           </div>
           <div>
-            <br />
-            {this.state.localName} score: {this.state.localWins}
-            <br />
-            {this.state.remoteName} score: {this.state.remoteWins}
+            <div className={styles.userInfo}>
+              <div>
+                <b>{this.state.localName}</b>
+              </div>
+              <div>score: {this.state.localWins}</div>
+            </div>
+            {this.state.roundStart ? (
+              <div>
+                <div className={styles.guestInfo}>
+                  <div>
+                    <b>{this.state.remoteName}</b>
+                  </div>
+                  <div>score: {this.state.remoteWins}</div>
+                </div>
+              </div>
+            ) : null}
           </div>
           <video
             autoPlay
@@ -255,28 +293,13 @@ class Video extends React.Component {
             autoPlay
             className={`${
               this.state.connecting || this.state.waiting ? "hide" : ""
-            }`}
+            } ${styles.guestVideo}`}
             id="remoteVideo"
             ref={(video) => (this.remoteVideo = video)}
             style={{ width: "100%", maxHeight: "100%" }}
           />
+          <this.showState></this.showState>
         </div>
-
-        {this.state.connecting && (
-          <div className="status">
-            <p>Establishing connection...</p>
-          </div>
-        )}
-        {this.state.waiting && (
-          <div className="status">
-            <p>Waiting for someone...</p>
-          </div>
-        )}
-        {this.state.full && (
-          <div className="status">
-            <p>Room is full</p>
-          </div>
-        )}
       </div>
     );
   }
